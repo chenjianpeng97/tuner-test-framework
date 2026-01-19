@@ -1,8 +1,11 @@
-import logging
 from typing import Any
 
 import pymysql
 from pymysql.cursors import DictCursor
+
+from tuner.util.log import get_logger
+
+log = get_logger("MySQLHelper")
 
 
 class MySQLHelper:
@@ -14,7 +17,8 @@ class MySQLHelper:
         """
         Initialize with database configuration.
 
-        :param config: Dictionary containing 'host', 'port', 'user', 'password', 'database', etc.
+        :param config: Dictionary containing 'host', 'port',
+        'user', 'password', 'database', etc.
         """
         self.host = config.get("host", "localhost")
         self.port = int(config.get("port", 3306))
@@ -39,7 +43,7 @@ class MySQLHelper:
                 autocommit=self.autocommit,
             )
         except pymysql.MySQLError as e:
-            logging.error(f"Failed to connect to database: {e}")
+            log.error("Failed to connect to database: {error}", error=str(e))
             raise
 
     def close(self):
@@ -69,8 +73,11 @@ class MySQLHelper:
                 cursor.execute(sql, params)
                 return cursor.fetchall()
         except pymysql.MySQLError as e:
-            logging.error(
-                f"Error executing fetch_all: {e}\nSQL: {sql}\nParams: {params}"
+            log.error(
+                "Error executing fetch_all: {error} | SQL: {sql} | Params: {params}",
+                error=str(e),
+                sql=sql,
+                params=params,
             )
             raise
 
@@ -88,8 +95,11 @@ class MySQLHelper:
                 cursor.execute(sql, params)
                 return cursor.fetchone()
         except pymysql.MySQLError as e:
-            logging.error(
-                f"Error executing fetch_one: {e}\nSQL: {sql}\nParams: {params}"
+            log.error(
+                "Error executing fetch_one: {error} | SQL: {sql} | Params: {params}",
+                error=str(e),
+                sql=sql,
+                params=params,
             )
             raise
 
@@ -110,15 +120,10 @@ class MySQLHelper:
         except pymysql.MySQLError as e:
             if not self.autocommit:
                 self.conn.rollback()
-            logging.error(f"Error executing execute: {e}\nSQL: {sql}\nParams: {params}")
+            log.error(
+                "Error executing execute: {error} | SQL: {sql} | Params: {params}",
+                error=str(e),
+                sql=sql,
+                params=params,
+            )
             raise
-
-
-# Example config
-# config = {
-#     'host': '127.0.0.1',
-#     'port': 3306,
-#     'user': 'root',
-#     'password': 'password',
-#     'database': 'test_db'
-# }

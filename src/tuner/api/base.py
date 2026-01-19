@@ -238,7 +238,8 @@ class APIExecutor:
             body_preview = self._truncate(response.text)
 
         self._log.debug(
-            "Received response: {status_code} in {elapsed:.3f}s content-type={content_type} body={body}",
+            """Received response: {status_code} in {elapsed:.3f}s
+            content-type={content_type} body={body}""",
             status_code=response.status_code,
             elapsed=response.elapsed.total_seconds(),
             content_type=content_type_resp,
