@@ -8,5 +8,10 @@
       "source.organizeImports.ruff": "explicit"
     }
   },
-  "ruff.lint.enable": true
+  "ruff.lint.enable": true,
+  "python.testing.pytestArgs": [
+    "tests"
+  ],
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestEnabled": true
 }

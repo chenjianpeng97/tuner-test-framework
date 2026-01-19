@@ -1,0 +1,165 @@
+# Tuner Test Framework 开发任务清单
+
+## 阶段一：项目初始化 (Priority: P0)
+
+- [x] 使用 uv 初始化项目结构
+- [x] 配置 pyproject.toml 依赖
+- [x] 创建项目目录结构 (src/tuner, tests, data)
+- [x] 配置 pytest (pytest.ini / pyproject.toml)
+- [ ] 安装 playwright 并初始化浏览器驱动
+
+## 阶段二：核心工具开发 (Priority: P0)
+
+### SQL 工具 (src/tuner/tools/sql.py)
+- [ ] 实现 DatabaseConfig 配置类
+- [ ] 实现 SQLTool 基础类
+- [ ] 实现 connect() 数据库连接
+- [ ] 实现 query() 查询方法
+- [ ] 实现 execute() 执行方法
+- [ ] 实现 transaction() 事务管理
+- [ ] 编写 SQL 工具单元测试
+
+### Excel 工具 (src/tuner/tools/excel.py)
+- [ ] 实现 ExcelTool 基础类
+- [ ] 实现 load() 加载文件
+- [ ] 实现 read_sheet() 读取 Sheet
+- [ ] 实现 read_cell() 读取单元格
+- [ ] 实现 write_sheet() 写入数据
+- [ ] 实现 compare() 数据比对
+- [ ] 编写 Excel 工具单元测试
+
+### JSONPath 工具 (src/tuner/tools/jsonpath.py)
+- [ ] 实现 JSONPathTool 基础类
+- [ ] 实现 extract() 单值提取
+- [ ] 实现 extract_all() 多值提取
+- [ ] 实现 exists() 路径检查
+- [ ] 实现 count() 计数方法
+- [ ] 编写 JSONPath 工具单元测试
+
+## 阶段三：API 模型管理开发 (Priority: P0) ✅ 已完成
+
+### 环境管理 (src/tuner/api/environment.py) ✅
+- [x] 实现 EnvironmentType 枚举 (test/staging/prod)
+- [x] 实现 Environment 配置类 (name, url_prefix, variables)
+- [x] 实现 EnvironmentManager 环境管理器
+- [x] 实现 register() 注册环境配置
+- [x] 实现 switch() 切换环境
+- [x] 实现 get_url_prefix() 获取当前环境 URL 前缀
+
+### Body 类型 (src/tuner/api/body.py) ✅
+- [x] 实现 BodyType 枚举 (none, json, text, form-data, xml 等)
+- [x] 实现 Body 基类
+- [x] 实现 NoneBody 空请求体
+- [x] 实现 JsonBody JSON 请求体
+- [x] 实现 TextBody 文本请求体
+- [x] 实现 FormDataBody 表单请求体（含文件上传）
+- [x] 实现 XmlBody XML 请求体
+
+### 认证管理 (src/tuner/api/auth.py) ✅
+- [x] 实现 AuthType 枚举 (none, bearer, apikey, basic)
+- [x] 实现 Auth 基类及 apply() 方法
+- [x] 实现 NoAuth 无认证
+- [x] 实现 BearerTokenAuth Bearer Token 认证 (第一版重点)
+- [x] 实现 ApiKeyAuth API Key 认证接口
+- [x] 实现 BasicAuth Basic 认证接口
+
+### 前置/后置操作 (src/tuner/api/operations.py) ✅
+- [x] 实现 OperationType 枚举
+- [x] 实现 OperationContext 操作上下文
+- [x] 实现 Operation 基类
+- [x] 实现 SQLQueryOperation SQL 查询操作
+- [x] 实现 SQLExecuteOperation SQL 执行操作
+- [x] 实现 ExtractVariableOperation 变量提取操作
+- [x] 实现 AssertOperation 断言操作 (支持多种操作符)
+- [x] 实现 SetVariableOperation 设置变量操作
+- [x] 实现 WaitOperation 等待操作
+
+### 核心框架 (src/tuner/api/) ✅
+- [x] 实现 APIResponse 响应封装类 (response.py)
+- [x] 实现 APIModel 模型类 (base.py)
+- [x] 实现 APIExecutor 执行器 (base.py)
+  - [x] 实现 _build_request() 构建请求
+  - [x] 实现 _prepare_body() 处理请求体
+  - [x] 实现 _send_request() 发送请求
+  - [x] 实现 _run_operations() 执行前置/后置操作
+- [ ] 实现 APISession 会话管理 (session.py)
+  - [ ] 实现 login() 登录方法
+  - [ ] 实现 get_auth() 获取认证
+  - [ ] 实现 execute() 执行 API
+  - [ ] 实现 get_storage_state() 登录态导出
+- [ ] 实现 APIRegistry 模型注册机制 (registry.py)
+
+### 业务 API 模型 (src/tuner/api/models/)
+- [ ] 实现 login_api 登录接口模型
+- [ ] 实现 user_list_api 用户列表接口模型
+- [ ] 实现 user_export_api 用户导出接口模型
+
+## 阶段四：浏览器驱动封装 (Priority: P1)
+
+### Playwright 封装 (src/tuner/browser/)
+- [ ] 实现 BrowserDriver 基础类
+- [ ] 实现浏览器启动/关闭
+- [ ] 实现 Context 创建（支持 storage_state）
+- [ ] 实现截图功能封装
+- [ ] 实现登录态复用机制
+- [ ] 编写浏览器驱动单元测试
+
+## 阶段五：配置管理 (Priority: P1)
+
+### 配置模块 (src/tuner/config/)
+- [ ] 实现 Settings 配置类
+- [ ] 支持环境变量读取 (.env)
+- [ ] 支持多环境配置 (test/staging/prod)
+- [ ] 实现数据库配置管理
+- [ ] 实现 API Base URL 配置
+
+## 阶段六：pytest 集成 (Priority: P0)
+
+### pytest 配置 (tests/)
+- [ ] 创建 conftest.py
+- [ ] 实现 sql_tool fixture
+- [ ] 实现 api_session fixture
+- [ ] 实现 browser_context fixture
+- [ ] 实现 excel_tool fixture
+- [ ] 配置 pytest 报告插件
+
+## 阶段七：第一个测试用例 (Priority: P0)
+
+### list&export 权限验证 (tests/cases/test_list_export.py)
+- [ ] 实现 TestUserListExport 测试类
+- [ ] 实现 test_list_export_with_screenshot 用例
+- [ ] Step1: SQL 查询用户数据
+- [ ] Step2: 调用 List API
+- [ ] Step3: JSONPath 验证响应
+- [ ] Step4: 调用 Export API
+- [ ] Step5: Excel 验证导出文件
+- [ ] Step6: Playwright 截图
+- [ ] 验证登录态复用机制
+
+## 阶段八：文档和优化 (Priority: P2)
+
+- [ ] 编写使用文档
+- [ ] 添加代码注释
+- [ ] 配置日志输出
+- [ ] 添加 CI/CD 配置
+- [ ] 性能优化
+
+---
+
+## 依赖包清单
+
+```
+pytest>=8.0.0
+playwright>=1.40.0
+openpyxl>=3.1.0
+pymysql>=1.1.0
+jsonpath-ng>=1.6.0
+pydantic>=2.0.0
+httpx>=0.27.0
+python-dotenv>=1.0.0
+pytest-html>=4.0.0
+```
+
+## 开发顺序建议
+
+1. 项目初始化 → 2. 核心工具 → 3. API模型 → 4. pytest集成 → 5. 第一个用例 → 6. 浏览器封装 → 7. 配置管理 → 8. 文档优化
