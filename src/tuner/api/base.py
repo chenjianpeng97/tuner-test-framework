@@ -2,6 +2,7 @@
 API 模型和执行器核心模块
 """
 
+import json
 from pathlib import Path
 from typing import Any
 
@@ -22,6 +23,7 @@ from tuner.api.body import (
 from tuner.api.environment import EnvironmentManager
 from tuner.api.operations import Operation, OperationContext
 from tuner.api.response import APIResponse
+from tuner.util.log import get_logger
 
 
 class APIModel(BaseModel):
@@ -60,6 +62,37 @@ class APIExecutor:
         self._client = client
         self._owns_client = client is None
         self.context = OperationContext()
+        self._log = get_logger("APIExecutor")
+
+    @staticmethod
+    def _redact_headers(headers: dict[str, str]) -> dict[str, str]:
+        sensitive = {"authorization", "cookie", "set-cookie", "x-api-key"}
+        redacted: dict[str, str] = {}
+        for key, value in headers.items():
+            if key.lower() in sensitive:
+                redacted[key] = "***"
+            else:
+                redacted[key] = value
+        return redacted
+
+    @staticmethod
+    def _truncate(value: str, *, limit: int = 2000) -> str:
+        if len(value) <= limit:
+            return value
+        return value[:limit] + "…(truncated)"
+
+    @classmethod
+    def _deep_merge_dict(
+        cls, base: dict[str, Any], updates: dict[str, Any]
+    ) -> dict[str, Any]:
+        merged: dict[str, Any] = {**base}
+        for key, value in updates.items():
+            existing = merged.get(key)
+            if isinstance(existing, dict) and isinstance(value, dict):
+                merged[key] = cls._deep_merge_dict(existing, value)
+            else:
+                merged[key] = value
+        return merged
 
     @property
     def client(self) -> httpx.Client:
@@ -74,6 +107,7 @@ class APIExecutor:
         path_params: dict[str, Any] | None = None,
         extra_params: dict[str, Any] | None = None,
         extra_headers: dict[str, str] | None = None,
+        update_body: dict[str, Any] | None = None,
         override_body: Body | None = None,
     ) -> APIResponse:
         """
@@ -84,6 +118,7 @@ class APIExecutor:
             path_params: 路径参数，用于替换 URL 中的 {param}
             extra_params: 额外的 Query 参数（会合并/覆盖默认值）
             extra_headers: 额外的请求头（会合并/覆盖默认值）
+            update_body: 更新请求体（保留默认字段；目前仅支持 JSON Body）
             override_body: 覆盖请求体
 
         Returns:
@@ -94,7 +129,7 @@ class APIExecutor:
 
         # 2. 构建并发送请求
         response = self._send_request(
-            api, path_params, extra_params, extra_headers, override_body
+            api, path_params, extra_params, extra_headers, update_body, override_body
         )
 
         # 3. 更新上下文（供后置操作使用）
@@ -111,6 +146,7 @@ class APIExecutor:
         path_params: dict[str, Any] | None,
         extra_params: dict[str, Any] | None,
         extra_headers: dict[str, str] | None,
+        update_body: dict[str, Any] | None,
         override_body: Body | None,
     ) -> APIResponse:
         """构建并发送 HTTP 请求"""
@@ -131,10 +167,31 @@ class APIExecutor:
 
         # 处理 Body
         body = override_body or api.body
+
+        if update_body:
+            if body.type == BodyType.JSON and isinstance(body, JsonBody):
+                body = JsonBody(data=self._deep_merge_dict(body.data, update_body))
+            # TODO: support update_body for other body types when needed.
+
         content, json_data, data, files, content_type = self._prepare_body(body)
 
         if content_type and "Content-Type" not in headers:
             headers["Content-Type"] = content_type
+
+        if body.type == BodyType.JSON and isinstance(body, JsonBody):
+            self._log.debug(
+                "Request body (json): {body}",
+                body=self._truncate(json.dumps(json_data or {}, ensure_ascii=False)),
+            )
+        # TODO: support logging for other body types (TEXT/XML/FORM/FILES) when needed.
+
+        self._log.debug(
+            "Sending request: {method} {url} params={params} headers={headers}",
+            method=api.method,
+            url=full_url,
+            params=params,
+            headers=self._redact_headers(headers),
+        )
 
         # 发送请求
         try:
@@ -152,6 +209,12 @@ class APIExecutor:
             )
         except httpx.RequestError as e:
             # 网络错误时返回特殊响应
+            self._log.warning(
+                "Request failed: {method} {url} error={error}",
+                method=api.method,
+                url=full_url,
+                error=str(e),
+            )
             return APIResponse(
                 status_code=0,
                 headers={},
@@ -166,6 +229,21 @@ class APIExecutor:
             response_body = response.json()
         except Exception:
             response_body = None
+
+        content_type_resp = response.headers.get("content-type")
+        body_preview: Any
+        if isinstance(response_body, (dict, list)):
+            body_preview = response_body
+        else:
+            body_preview = self._truncate(response.text)
+
+        self._log.debug(
+            "Received response: {status_code} in {elapsed:.3f}s content-type={content_type} body={body}",
+            status_code=response.status_code,
+            elapsed=response.elapsed.total_seconds(),
+            content_type=content_type_resp,
+            body=body_preview,
+        )
 
         return APIResponse(
             status_code=response.status_code,

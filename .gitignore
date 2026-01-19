@@ -205,3 +205,6 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# tests/system/下为本司实际项目的使用示例，不上传git
+tests/system/

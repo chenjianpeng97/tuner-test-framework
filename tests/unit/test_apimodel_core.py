@@ -169,6 +169,28 @@ class TestAPIExecutorOverride:
             assert json_data.get("new_field") == "value"
             assert "original" not in json_data
 
+    def test_update_body_preserves_defaults(self):
+        """测试 update_body 会保留未覆盖的默认字段（仅 JSON）"""
+        api = APIModel(
+            name="Body 更新测试",
+            method="POST",
+            url="/post",
+            body=JsonBody(data={"a": 1, "b": 2, "nested": {"x": 1, "y": 2}}),
+        )
+        with APIExecutor() as executor:
+            response = executor.execute(
+                api,
+                update_body={"b": 3, "nested": {"y": 99}, "new": "value"},
+            )
+            assert response.status_code == 200
+            json_data = response.body.get("json", {})
+            assert json_data == {
+                "a": 1,
+                "b": 3,
+                "nested": {"x": 1, "y": 99},
+                "new": "value",
+            }
+
     def test_path_params(self):
         """测试路径参数替换"""
         api = APIModel(
