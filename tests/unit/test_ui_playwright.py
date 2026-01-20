@@ -10,7 +10,7 @@ import pytest
 from tuner.ui import (
     build_screenshot_path,
     capture_page_screenshot,
-    playwright_client,
+    core,
     sanitize_filename,
 )
 
@@ -47,9 +47,7 @@ def test_capture_page_screenshot_calls_playwright(monkeypatch, tmp_path) -> None
     manager.__enter__.return_value = mock_playwright
     manager.__exit__.return_value = None
 
-    monkeypatch.setattr(
-        playwright_client, "sync_playwright", MagicMock(return_value=manager)
-    )
+    monkeypatch.setattr(core, "sync_playwright", MagicMock(return_value=manager))
 
     now = datetime(2026, 1, 19, 8, 9, 10, tzinfo=UTC)
     result = capture_page_screenshot(
