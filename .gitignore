@@ -208,3 +208,6 @@ __marimo__/
 
 # tests/system/下为本司实际项目的使用示例，不上传git
 tests/system/
+
+# 截图
+**/screenshots/
