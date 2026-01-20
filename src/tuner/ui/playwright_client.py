@@ -32,7 +32,7 @@ SameSite = Literal["Lax", "Strict", "None"]
 class ScreenshotResult:
     path: Path
     url: str
-    nickname: str
+    description: str
     timestamp: datetime
 
 
@@ -51,11 +51,11 @@ def sanitize_filename(value: str) -> str:
 
 def build_screenshot_path(
     output_dir: str | Path,
-    nickname: str,
+    description: str,
     *,
     now: datetime | None = None,
 ) -> Path:
-    """Build a screenshot path using nickname and UTC timestamp."""
+    """Build a screenshot path using description and UTC timestamp."""
 
     # 使用 UTC 时间戳，便于跨时区比对与排序
     timestamp = now or datetime.now(UTC)
@@ -69,7 +69,7 @@ def build_screenshot_path(
 
     # 文件名包含昵称 + UTC 时间
     ts = timestamp.astimezone(UTC).strftime("%Y%m%d_%H%M%S")
-    filename = f"{sanitize_filename(nickname)}_{ts}.png"
+    filename = f"{sanitize_filename(description)}_{ts}.png"
     return directory / filename
 
 
@@ -229,7 +229,7 @@ def capture_page_screenshot(
     *,
     url: str,
     token: str,
-    nickname: str,
+    description: str,
     output_dir: str | Path = "screenshots",
     token_storage_key: str = "token",
     extra_local_storage: dict[str, str] | None = None,
@@ -258,7 +258,7 @@ def capture_page_screenshot(
     Args:
         url: Target page URL.
         token: Token from API DDT run.
-        nickname: Nickname used in DDT; used in screenshot filename.
+        description: description used in DDT; used in screenshot filename.
         output_dir: Directory to store screenshots.
         token_storage_key: localStorage key for the token.
         extra_local_storage: Extra localStorage entries to set before page load.
@@ -311,11 +311,11 @@ def capture_page_screenshot(
 
     # 截图文件路径（包含时间戳）
     timestamp = now or datetime.now(UTC)
-    screenshot_path = build_screenshot_path(output_dir, nickname, now=timestamp)
+    screenshot_path = build_screenshot_path(output_dir, description, now=timestamp)
 
     log.info(
-        "Capturing screenshot for {nickname} at {url}",
-        nickname=nickname,
+        "Capturing screenshot for {description} at {url}",
+        description=description,
         url=url,
     )
 
@@ -433,7 +433,7 @@ def capture_page_screenshot(
         return ScreenshotResult(
             path=screenshot_path,
             url=url,
-            nickname=nickname,
+            description=description,
             timestamp=timestamp,
         )
     finally:

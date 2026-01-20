@@ -20,7 +20,7 @@ def test_sanitize_filename_replaces_invalid_chars() -> None:
     assert sanitize_filename(value) == "A_B_C_D_E_F"
 
 
-def test_build_screenshot_path_uses_nickname_and_timestamp(tmp_path) -> None:
+def test_build_screenshot_path_uses_description_and_timestamp(tmp_path) -> None:
     now = datetime(2026, 1, 19, 8, 9, 10, tzinfo=UTC)
     path = build_screenshot_path(tmp_path, "测试 User", now=now)
     assert path.parent == tmp_path
@@ -55,7 +55,7 @@ def test_capture_page_screenshot_calls_playwright(monkeypatch, tmp_path) -> None
     result = capture_page_screenshot(
         url="https://example.com/app",
         token="token-123",
-        nickname="测试",
+        description="测试",
         output_dir=tmp_path,
         token_storage_key="token",
         now=now,
