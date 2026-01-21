@@ -15,6 +15,7 @@
   "python.testing.unittestEnabled": false,
   "python.testing.pytestEnabled": true,
   "conventionalCommits.scopes": [
-    "ui"
+    "ui",
+    "cli.record"
   ]
 }
