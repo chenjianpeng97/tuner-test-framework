@@ -176,16 +176,35 @@ def _filter_headers(headers: dict[str, str]) -> dict[str, str]:
 
 
 def generate_api_name(method: str, path: str) -> str:
-    """Generate API name from HTTP method and path."""
+    """Generate API name from HTTP method and path.
+
+    Uses full path segments joined by underscore for unique naming.
+    """
     parts = [p for p in path.split("/") if p and not p.startswith("{")]
-    name = parts[-1] if parts else "api"
-    return f"{method.lower()}_{_safe_identifier(name)}"
+    if not parts:
+        return f"{method.lower()}_api"
+    # Join all path segments with underscore for unique name
+    path_name = "_".join(_safe_identifier(p) for p in parts)
+    return f"{method.lower()}_{path_name}"
+
+
+def _strip_prefix_from_path(full_path: str, url_prefix: str | None) -> str:
+    """Strip URL prefix path from full path."""
+    if not url_prefix:
+        return full_path
+    prefix_parsed = urlparse(url_prefix)
+    prefix_path = prefix_parsed.path.rstrip("/")
+    if full_path.startswith(prefix_path):
+        path = full_path[len(prefix_path) :]
+        return path if path.startswith("/") else "/" + path
+    return full_path
 
 
 def generate_apimodel_code(
     request: RecordedRequest,
     response: RecordedResponse | None = None,
     *,
+    url_prefix: str | None = None,
     api_name: str | None = None,
     description: str | None = None,
     variable_name: str | None = None,
@@ -196,6 +215,7 @@ def generate_apimodel_code(
     Args:
         request: Recorded request data
         response: Recorded response data (optional, for comments)
+        url_prefix: URL prefix used during recording (will be stripped from url)
         api_name: API name (optional, auto-generated)
         description: API description (optional)
         variable_name: Python variable name (optional, auto-generated)
@@ -204,7 +224,7 @@ def generate_apimodel_code(
         Complete Python module code
     """
     parsed = urlparse(request.url)
-    path = parsed.path
+    path = _strip_prefix_from_path(parsed.path, url_prefix)
     query_params = parse_qs(parsed.query, keep_blank_values=True)
     params = {k: v[0] if len(v) == 1 else v for k, v in query_params.items()}
 
@@ -265,7 +285,17 @@ def generate_apimodel_code(
     return "\n".join(lines)
 
 
-def generate_filename(method: str, path: str) -> str:
-    """Generate Python filename."""
-    name = generate_api_name(method, path)
+def generate_filename(method: str, path: str, url_prefix: str | None = None) -> str:
+    """Generate Python filename.
+
+    Args:
+        method: HTTP method
+        path: Full URL path
+        url_prefix: URL prefix to strip from path
+
+    Returns:
+        Python filename like 'get_system_user_list.py'
+    """
+    relative_path = _strip_prefix_from_path(path, url_prefix)
+    name = generate_api_name(method, relative_path)
     return f"{name}.py"

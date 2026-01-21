@@ -127,14 +127,16 @@ class APIModelRecorder:
 
         # Generate code
         try:
-            code = generate_apimodel_code(recorded_request, recorded_response)
+            code = generate_apimodel_code(
+                recorded_request, recorded_response, url_prefix=self.url_prefix
+            )
         except Exception as e:
             ctx.log.error(f"Failed to generate APIModel code: {url} - {e}")
             return
 
         # Generate filename
         parsed = urlparse(url)
-        filename = generate_filename(req.method, parsed.path)
+        filename = generate_filename(req.method, parsed.path, self.url_prefix)
         filepath = self.output_dir / filename
 
         # Check overwrite

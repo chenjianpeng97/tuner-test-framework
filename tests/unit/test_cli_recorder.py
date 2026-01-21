@@ -16,19 +16,23 @@ class TestGenerateApiName:
 
     def test_simple_path(self):
         name = generate_api_name("GET", "/api/v1/users")
-        assert name == "get_users"
+        assert name == "get_api_v1_users"
 
     def test_post_method(self):
         name = generate_api_name("POST", "/api/users")
-        assert name == "post_users"
+        assert name == "post_api_users"
 
     def test_path_with_param(self):
         name = generate_api_name("GET", "/api/users/{id}")
-        assert name == "get_users"
+        assert name == "get_api_users"
 
     def test_empty_path(self):
         name = generate_api_name("GET", "/")
         assert name == "get_api"
+
+    def test_deep_path(self):
+        name = generate_api_name("GET", "/system/dict/data/type/sys_user_sex")
+        assert name == "get_system_dict_data_type_sys_user_sex"
 
 
 class TestGenerateFilename:
@@ -36,11 +40,19 @@ class TestGenerateFilename:
 
     def test_generates_py_file(self):
         filename = generate_filename("GET", "/api/users")
-        assert filename == "get_users.py"
+        assert filename == "get_api_users.py"
 
     def test_post_method(self):
         filename = generate_filename("POST", "/api/v1/products")
-        assert filename == "post_products.py"
+        assert filename == "post_api_v1_products.py"
+
+    def test_with_url_prefix(self):
+        filename = generate_filename(
+            "GET",
+            "/prod-api/system/dict/data/type/sys_user_sex",
+            url_prefix="http://example.com/prod-api",
+        )
+        assert filename == "get_system_dict_data_type_sys_user_sex.py"
 
 
 class TestGenerateApiModelCode:
@@ -62,7 +74,24 @@ class TestGenerateApiModelCode:
         # Check model definition
         assert 'method="GET"' in code
         assert 'url="/api/users"' in code
-        assert "get_users_api = APIModel(" in code
+        assert "get_api_users_api = APIModel(" in code
+
+    def test_with_url_prefix(self):
+        """Test that url_prefix is stripped from the generated url."""
+        request = RecordedRequest(
+            method="GET",
+            url="http://116.204.94.77:8524/prod-api/system/dict/data/type/sys_user_sex",
+            headers={"Accept": "application/json"},
+        )
+
+        code = generate_apimodel_code(
+            request, url_prefix="http://116.204.94.77:8524/prod-api"
+        )
+
+        # URL should be stripped of prefix
+        assert 'url="/system/dict/data/type/sys_user_sex"' in code
+        # Variable name should use the relative path
+        assert "get_system_dict_data_type_sys_user_sex_api = APIModel(" in code
 
     def test_post_with_json_body(self):
         request = RecordedRequest(
