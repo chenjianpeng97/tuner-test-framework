@@ -211,3 +211,8 @@ tests/system/
 
 # 截图
 **/screenshots/
+
+# examples敏感数据
+
+/examples/curl
+/examples/*.json

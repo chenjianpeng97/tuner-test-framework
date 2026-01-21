@@ -13,10 +13,10 @@ from pathlib import Path
 from tuner.ui import capture_page_screenshot
 
 # 假设这些值来自本次 DDT（或 API 测试的返回结果）
-NICKNAME = "李开心"
-USERNAME = "Happy.li@argonmedical.com"
+NICKNAME = "me"
+USERNAME = "tuner@gamail.com"
 TOKEN = "your_token_from_ddt"
-TARGET_URL = "http://116.204.94.77:8524/auth/distributorRelation"
+TARGET_URL = "http://exampleurl/auth/distributorRelation"
 
 result = capture_page_screenshot(
     url=TARGET_URL,
