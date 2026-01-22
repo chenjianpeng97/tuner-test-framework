@@ -95,6 +95,27 @@ create_response = executor.execute(create_user_api)
 log.info(f"[JSON Body] 创建用户状态码: {create_response.status_code}")
 log.info(f"[JSON Body] 创建用户响应: {create_response.body}")
 
+# 5.1 路径参数（Path Params）示例
+get_user_api = APIModel(
+    name="获取用户详情",
+    description="使用路径参数读取用户信息",
+    method="GET",
+    url="/api/v1/users/{user_id}",
+    path_params={"user_id": 1},
+    headers={"Accept": "application/json"},
+)
+
+# 默认 path_params
+response_user_default = executor.execute(get_user_api)
+log.info(f"[Path Params] 默认用户状态码: {response_user_default.status_code}")
+
+# 调用时覆盖 path_params
+response_user_override = executor.execute(
+    get_user_api,
+    path_params={"user_id": 2},
+)
+log.info(f"[Path Params] 覆盖用户状态码: {response_user_override.status_code}")
+
 # 6. 【常用场景】调用时动态覆盖部分字段（不修改原始 APIModel 定义）
 # 测试工程师经常需要在不同测试用例中，对同一个 API 的 headers/params/body 做微调
 # executor.execute() 支持 extra_headers, extra_params, override_body 参数

@@ -41,6 +41,7 @@ class APIModel(BaseModel):
     body: Body = NoneBody()  # 请求体
     headers: dict[str, str] = {}  # 请求头
     cookies: dict[str, str] = {}  # Cookies
+    path_params: dict[str, Any] = {}  # 路径参数
 
     # 认证
     auth: Auth = NoAuth()  # 认证配置
@@ -152,7 +153,8 @@ class APIExecutor:
         """构建并发送 HTTP 请求"""
         # URL 处理
         url_prefix = api.url_prefix or EnvironmentManager.get_url_prefix()
-        url = api.url.format(**(path_params or {}))
+        merged_path_params = {**api.path_params, **(path_params or {})}
+        url = api.url.format(**merged_path_params)
         full_url = f"{url_prefix}{url}"
 
         # 合并参数

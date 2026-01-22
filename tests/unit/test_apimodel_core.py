@@ -192,15 +192,19 @@ class TestAPIExecutorOverride:
             }
 
     def test_path_params(self):
-        """测试路径参数替换"""
+        """测试路径参数替换（默认值 + 覆盖）"""
         api = APIModel(
             name="路径参数测试",
             method="GET",
             url="/status/{code}",
+            path_params={"code": 200},
         )
         with APIExecutor() as executor:
-            response = executor.execute(api, path_params={"code": 201})
-            assert response.status_code == 201
+            response_default = executor.execute(api)
+            assert response_default.status_code == 200
+
+            response_override = executor.execute(api, path_params={"code": 201})
+            assert response_override.status_code == 201
 
 
 class TestAPIExecutorAuth:

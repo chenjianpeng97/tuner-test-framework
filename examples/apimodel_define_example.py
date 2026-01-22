@@ -21,3 +21,13 @@ create_user_api = APIModel(
         }
     ),
 )
+
+# 定义带路径参数的接口（GET 用户详情）
+get_user_api = APIModel(
+    name="获取用户详情",
+    description="使用路径参数读取用户信息",
+    method="GET",
+    url="/api/v1/users/{user_id}",
+    path_params={"user_id": 1},
+    headers={"Accept": "application/json"},
+)
