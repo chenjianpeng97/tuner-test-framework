@@ -12,6 +12,9 @@ from tuner.api.operations import (
     ExtractVariableOperation,
     SQLQueryOperation,
 )
+from tuner.util import log
+
+log = log.get_logger("apimodel_usage_example")
 
 # 1. 注册环境
 EnvironmentManager.register(
@@ -58,15 +61,15 @@ user_list_api = APIModel(
 executor = APIExecutor()
 response = executor.execute(user_list_api)
 
-print(f"HTTP 状态码: {response.status_code}")
-print(f"响应数据: {response.body}")
-print(f"预期用户总数: {executor.get_variable('expected_total')}")
-print(f"实际用户列表: {executor.get_variable('actual_users')}")
+log.info(f"HTTP 状态码: {response.status_code}")
+log.info(f"响应数据: {response.body}")
+log.info(f"预期用户总数: {executor.get_variable('expected_total')}")
+log.info(f"实际用户列表: {executor.get_variable('actual_users')}")
 
 # 4. 切换环境后再次调用
 EnvironmentManager.switch(EnvironmentType.PRODUCTION)
 response_prod = executor.execute(user_list_api)
-print(f"[生产环境] HTTP 状态码: {response_prod.status_code}")
+log.info(f"[生产环境] HTTP 状态码: {response_prod.status_code}")
 
 # 5. 定义并调用一个 JSON Body 的接口示例（POST 创建用户）
 create_user_api = APIModel(
@@ -89,14 +92,14 @@ create_user_api = APIModel(
 )
 
 create_response = executor.execute(create_user_api)
-print(f"[JSON Body] 创建用户状态码: {create_response.status_code}")
-print(f"[JSON Body] 创建用户响应: {create_response.body}")
+log.info(f"[JSON Body] 创建用户状态码: {create_response.status_code}")
+log.info(f"[JSON Body] 创建用户响应: {create_response.body}")
 
 # 6. 【常用场景】调用时动态覆盖部分字段（不修改原始 APIModel 定义）
 # 测试工程师经常需要在不同测试用例中，对同一个 API 的 headers/params/body 做微调
 # executor.execute() 支持 extra_headers, extra_params, override_body 参数
 
-print("\n===== 动态覆盖字段示例 =====")
+log.info("\n===== 动态覆盖字段示例 =====")
 
 # 场景 A: 覆盖 headers 中的 Authorization（模拟不同用户 Token）
 response_with_new_token = executor.execute(
@@ -106,7 +109,7 @@ response_with_new_token = executor.execute(
         "X-Request-Id": "test-request-12345",  # 新增自定义 header
     },
 )
-print(f"[覆盖 Header] 状态码: {response_with_new_token.status_code}")
+log.info(f"[覆盖 Header] 状态码: {response_with_new_token.status_code}")
 
 # 场景 B: 覆盖 params（适用于 GET 请求，修改分页、筛选条件等）
 response_with_new_params = executor.execute(
@@ -116,7 +119,7 @@ response_with_new_params = executor.execute(
         "status": "active",  # 新增筛选条件
     },
 )
-print(f"[覆盖 Params] 状态码: {response_with_new_params.status_code}")
+log.info(f"[覆盖 Params] 状态码: {response_with_new_params.status_code}")
 
 # 场景 C: 覆盖 JSON Body 中的部分字段（最常见的测试场景）
 # 方式一：使用 override_body 完全替换 body
@@ -132,7 +135,7 @@ response_with_new_body = executor.execute(
         }
     ),
 )
-print(f"[覆盖 Body] 状态码: {response_with_new_body.status_code}")
+log.info(f"[覆盖 Body] 状态码: {response_with_new_body.status_code}")
 
 # 场景 D: 组合覆盖 - 同时修改 headers + params + body
 response_combined = executor.execute(
@@ -154,7 +157,7 @@ response_combined = executor.execute(
         }
     ),
 )
-print(f"[组合覆盖] 状态码: {response_combined.status_code}")
+log.info(f"[组合覆盖] 状态码: {response_combined.status_code}")
 
 
 # 场景 E: 使用辅助函数快速修改 body 中的个别字段（推荐封装）
@@ -171,4 +174,4 @@ patched_body = patch_json_body(
     email="patched@example.com",
 )
 response_patched = executor.execute(create_user_api, override_body=patched_body)
-print(f"[Patch Body] 状态码: {response_patched.status_code}")
+log.info(f"[Patch Body] 状态码: {response_patched.status_code}")
