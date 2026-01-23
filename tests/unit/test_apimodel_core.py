@@ -64,6 +64,24 @@ class TestAPIModelBasic:
         assert isinstance(api.body, JsonBody)
         assert api.body.data["username"] == "test"
 
+    def test_edit_api_model(self):
+        """测试编辑 APIModel"""
+        api = APIModel(
+            name="初始接口",
+            method="GET",
+            url="/get",
+        )
+        api.name = "修改后接口"
+        api.method = "POST"
+        api.url = "/post"
+        api.body = JsonBody(data={"key": "value"})
+
+        assert api.name == "修改后接口"
+        assert api.method == "POST"
+        assert api.url == "/post"
+        assert isinstance(api.body, JsonBody)
+        assert api.body.data["key"] == "value"
+
 
 class TestAPIExecutorBasic:
     """APIExecutor 基础功能测试"""
