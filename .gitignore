@@ -216,3 +216,7 @@ tests/system/
 
 /examples/curl
 /examples/*.json
+
+# record cli录制结果
+
+/recorded_apis/
