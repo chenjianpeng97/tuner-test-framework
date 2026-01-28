@@ -187,6 +187,33 @@ class TestAPIExecutorOverride:
             assert json_data.get("new_field") == "value"
             assert "original" not in json_data
 
+    def test_override_body_nested_dict(self):
+        """测试 override_body 覆盖嵌套字典字段（完全替换而非合并）"""
+        api = APIModel(
+            name="Body 嵌套字典覆盖测试",
+            method="POST",
+            url="/post",
+            body=JsonBody(
+                data={
+                    "a": 1,
+                    "nested": {
+                        "child_dict1": [{"x": 1}, {"y": 2}],
+                        "child_dict2": [{"z": 3}, {"v": 4}],
+                    },
+                }
+            ),
+        )
+        with APIExecutor() as executor:
+            response = executor.execute(
+                api,
+                override_body=JsonBody(data={"nested": {"y": 99}}),
+            )
+            assert response.status_code == 200
+            json_data = response.body.get("json", {})
+            # override_body 应该替换整个字段，原有的 nested.x 应被移除
+            assert json_data.get("nested") == {"y": 99}
+            assert "x" not in json_data.get("nested", {})
+
     def test_update_body_preserves_defaults(self):
         """测试 update_body 会保留未覆盖的默认字段（仅 JSON）"""
         api = APIModel(
