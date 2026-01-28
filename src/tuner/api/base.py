@@ -77,7 +77,7 @@ class APIExecutor:
         return redacted
 
     @staticmethod
-    def _truncate(value: str, *, limit: int = 2000) -> str:
+    def _truncate(value: str, *, limit: int = 5000) -> str:
         if len(value) <= limit:
             return value
         return value[:limit] + "…(truncated)"
