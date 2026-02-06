@@ -4,11 +4,13 @@ API 响应封装模块
 
 from typing import Any
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class APIResponse(BaseModel):
     """API 响应封装"""
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     status_code: int
     headers: dict[str, str]
@@ -16,6 +18,10 @@ class APIResponse(BaseModel):
     body: Any
     elapsed: float  # 响应时间（秒）
     raw_text: str = ""  # 原始响应文本
+    original_response: Any = Field(
+        default=None,
+        exclude=True,
+    )  # 原始响应对象（如 httpx.Response 或测试中的 MockResponse）
 
     def json(self) -> dict[str, Any]:
         """获取 JSON 响应"""

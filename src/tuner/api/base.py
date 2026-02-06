@@ -224,6 +224,7 @@ class APIExecutor:
                 body={"error": str(e)},
                 elapsed=0.0,
                 raw_text=str(e),
+                original_response=None,
             )
 
         # 解析响应体
@@ -255,6 +256,7 @@ class APIExecutor:
             body=response_body,
             elapsed=response.elapsed.total_seconds(),
             raw_text=response.text,
+            original_response=response,
         )
 
     def _prepare_body(
